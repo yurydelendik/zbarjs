@@ -1,0 +1,3 @@
+Simple barcode scanning application (for Firefox OS)
+
+Compiled from zbar.sf.net using emscripten.

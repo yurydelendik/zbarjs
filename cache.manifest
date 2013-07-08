@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# Application files
+index.html
+zbar-main.js
+zbar-processor.js
+icon-128.png
+LICENSE
+css/style.css
+css/go.png
+css/search.png
+css/texture.png
+css/qrcode.png
