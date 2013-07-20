@@ -19,4 +19,4 @@ git checkout -b gh-pages
 git add *
 git commit -m "created by build-gh-pages.sh"
 
-echo "cd gh-pages; git push https://github.com/<username>/zbarjs.git gh-pages"
+echo "cd gh-pages; git push -f https://github.com/<username>/zbarjs.git gh-pages"

@@ -27,6 +27,12 @@ var searchCodeButton = document.getElementById("search-code");
 
 
 function scan() {
+  if (typeof MozActivity !== 'undefined') {
+    // in Firefox OS v1.0.1, input[file] does not work, using Web Activities
+    takePictureUsingWebActivity();
+    return;
+  }
+
   takePicture.click();
 }
 function openUrl() {
@@ -36,21 +42,35 @@ function searchCode() {
   window.open('https://www.google.com/search?q=' + codeContent.value);        
 }
 
+// https://hacks.mozilla.org/2013/01/introducing-web-activities/
+function takePictureUsingWebActivity() {
+  var pick = new MozActivity({
+    name: "pick",
+    data: { type: ["image/png", "image/jpg", "image/jpeg"] }
+  });
+  pick.onsuccess = function () {
+    loadImage(URL.createObjectURL(this.result.blob));
+  };
+}
+
 takePicture.onchange = function (event) {
   var files = event.target.files;
   if (!files || files.length === 0) {
     return;
   }
 
+  var file = files[0];
+  var imgURL = (window.URL || window.webkitURL).createObjectURL(file);
+  loadImage(imgURL);
+}
+
+function loadImage(imgURL) {
   // clean
   codeType.textContent = '';
   codeContent.value = '';
   openUrlButton.setAttribute('hidden', 'hidden');
   searchCodeButton.setAttribute('hidden', 'hidden');
 
-  var file = files[0];
-  var imgURL = (window.URL || window.webkitURL).createObjectURL(file);
- 
   var img = new Image();
   img.onload = function () {
     var canvas = document.createElement('canvas');
@@ -96,7 +116,7 @@ takePicture.onchange = function (event) {
 
 codeContent.value = '';
 
-//setTimeout(scan, 500); // trying to start "scanning"
+setTimeout(scan, 500); // trying to start "scanning"
 
 var canInstall = !!(navigator.mozApps && navigator.mozApps.install);
 if (canInstall) {
