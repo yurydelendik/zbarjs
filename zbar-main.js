@@ -1,4 +1,5 @@
 // Copyright (c) 2013 Yury Delendik
+// Modified 2014, André Fiedler
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -18,124 +19,132 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-var takePicture = document.getElementById("take-picture");
-var canvas = document.createElement("canvas");
-var codeType = document.getElementById("code-type");
-var codeContent = document.getElementById("code-content");
-var openUrlButton = document.getElementById("open-url");
-var searchCodeButton = document.getElementById("search-code");
+var video = document.querySelector('#video'),
+	canvas = document.createElement('canvas');
 
+var ctx = canvas.getContext('2d'),
+    streaming = false,
+	startTime = 0;
 
-function scan() {
-  if (typeof MozActivity !== 'undefined') {
-    // in Firefox OS v1.0.1, input[file] does not work, using Web Activities
-    takePictureUsingWebActivity();
-    return;
-  }
+navigator.getMedia = (
+    navigator.getUserMedia ||
+    navigator.webkitGetUserMedia ||
+    navigator.mozGetUserMedia ||
+    navigator.msGetUserMedia
+);
 
-  takePicture.click();
-}
-function openUrl() {
-  window.open(codeContent.value);
-}
-function searchCode() {
-  window.open('https://www.google.com/search?q=' + codeContent.value);        
-}
+video.addEventListener('play', function (ev) {
+    if (!streaming) {
 
-// https://hacks.mozilla.org/2013/01/introducing-web-activities/
-function takePictureUsingWebActivity() {
-  var pick = new MozActivity({
-    name: "pick",
-    data: { type: ["image/png", "image/jpg", "image/jpeg"] }
-  });
-  pick.onsuccess = function () {
-    loadImage(URL.createObjectURL(this.result.blob));
-  };
-}
+        // resizing image for slow devices
+        canvas.width = 480;
+        canvas.height = Math.ceil(480 / video.clientWidth * video.clientHeight);
 
-takePicture.onchange = function (event) {
-  var files = event.target.files;
-  if (!files || files.length === 0) {
-    return;
-  }
-
-  var file = files[0];
-  var imgURL = (window.URL || window.webkitURL).createObjectURL(file);
-  loadImage(imgURL);
-}
-
-function loadImage(imgURL) {
-  // clean
-  codeType.textContent = '';
-  codeContent.value = '';
-  openUrlButton.setAttribute('hidden', 'hidden');
-  searchCodeButton.setAttribute('hidden', 'hidden');
-
-  var img = new Image();
-  img.onload = function () {
-    var canvas = document.createElement('canvas');
-    // resizing image to 320x240 for slow devices
-    var k = (320 + 240) / (img.width + img.height);
-    canvas.width = Math.ceil(img.width * k);
-    canvas.height = Math.ceil(img.height * k);
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, img.width, img.height,
-                  0, 0, canvas.width, canvas.height);
-
-    var data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-    var t0 = Date.now();
-    var codes = zbarProcessImageData(data);
-    var t = Date.now() - t0;
-    document.body.classList.remove('processing');
-
-    if (codes.length === 0) {
-      codeType.textContent = 'N/A';
-      document.body.classList.add('not-detected');
-      return;
+        streaming = true;
     }
-      
-    var type = codes[0][0];
-    var data = codes[0][2];
-    // publishing data
-    codeType.textContent = type;
-    codeContent.value = data;
+}, false);
 
-    var isUrl = /^(http|https|ftp|mailto):/.test(data);
-    if (isUrl) {
-      openUrlButton.removeAttribute('hidden');
+navigator.getMedia(
+    {
+        video: true,
+        audio: false
+    },
+    function(stream) {
+
+        if (navigator.mozGetUserMedia) {
+
+            video.mozSrcObject = stream;
+
+        } else {
+
+            var vendorURL = window.URL || window.webkitURL;
+            video.src = vendorURL ? vendorURL.createObjectURL(stream) : stream;
+
+        }
+
+        video.play();
+
+        DecodeBar();
+    },
+    function(err) {
+        console.log('An error occured! ' + err);
+    }
+);
+
+var resultArray = [],
+    workerCount = 0;
+
+function receiveMessage(e) {
+
+    workerCount--;
+
+    //var endTime = new Date().getTime();
+    //var time = endTime - startTime;
+    //console.info('Execution time: ' + time);
+
+    if (e.data.success === 'log') {
+        console.log(e.data.result);
+        return;
+    }
+
+    if (e.data.success) {
+        alert(e.data.result.join("\n"));
+        DecodeBar();
     } else {
-      searchCodeButton.removeAttribute('hidden');
+        if (e.data.result.length === 0 && workerCount === 0) {
+            console.error('Decoding failed.');
+            DecodeBar();
+        }
     }
-  };
-  img.src = imgURL;
-  document.body.classList.add('processing');
-  document.body.classList.remove('not-detected');
-  document.getElementById('info').removeAttribute('hidden');
-};
+}
 
-codeContent.value = '';
+var decodeWorker = new Worker('zbar-processor.js');
+decodeWorker.onmessage = receiveMessage;
 
-setTimeout(scan, 500); // trying to start "scanning"
+// Firefox Bug 879717 - drawImage on MediaStream assigned to <video> stopped working again
+// See: https://bugzilla.mozilla.org/show_bug.cgi?id=879717
+function drawVideo() {
+    try {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        decodeWorker.postMessage({
+            imageData: ctx.getImageData(0, 0, canvas.width, canvas.height).data,
+            width: canvas.width,
+            height: canvas.height
+        });
+    } catch (e) {
+        if (e.name === 'NS_ERROR_NOT_AVAILABLE') {
+            setTimeout(drawVideo, 0);
+        } else {
+            throw e;
+        }
+    }
+}
 
+function DecodeBar() {
+    resultArray = [];
+    workerCount++;
+    //startTime = new Date().getTime();	
+    drawVideo();
+}
+
+// Firefox WebInstall
 var canInstall = !!(navigator.mozApps && navigator.mozApps.install);
 if (canInstall) {
-  var installButton = document.getElementById('install');
-  var manifestURL = installButton.href;
-  var request = window.navigator.mozApps.checkInstalled(manifestURL);
-  request.onsuccess = function(e) {
-    if (request.result) {
-      return;
-    }
-
-    // App is not installed
-    installButton.removeAttribute('hidden');
-    installButton.addEventListener('click', function (e) {
-      var request = navigator.mozApps.install(manifestURL);
-      request.onsuccess = function (e) {
-        alert('Application installed');
-      };
-      e.preventDefault();
-    }, false);
-  };
+    var installButton = document.getElementById('install');
+    var manifestURL = installButton.href;
+    var request = window.navigator.mozApps.checkInstalled(manifestURL);
+    request.onsuccess = function(e) {
+        if (request.result) {
+            return;
+        }
+        // App is not installed
+        installButton.removeAttribute('hidden');
+        installButton.addEventListener('click', function(e) {
+            var request = navigator.mozApps.install(manifestURL);
+            request.onsuccess = function(e) {
+                alert('Application installed');
+            };
+            e.preventDefault();
+        }, false);
+    };
 }

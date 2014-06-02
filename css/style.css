@@ -1,103 +1,29 @@
-#splash {
-  display: none;
-}
 
 body {
-  font-family: sans-serif;
-  height: 100%;
-  color: #FFFFFF;
-  background-color: #404040;
-  background-image: url(images/texture.png);
-  padding-top: 20px;
+	font-family: sans-serif;
+	height: 100%;
+	background: #000;
 }
 
-.processing #splash {
-  display: block;
-  position: fixed;
-  top: calc(50% - 100px);
-  left: calc(50% - 100px);
-  border-top: 5px solid #FF0000;
-  background-color: rgba(255, 0, 0, 0.3);
-  width: 200px;
-  height: 195px;
-  z-index: 100;
-  transform-origin: 50% 100%;
-  transform: perspective(100px) translateY(-10px) scaleX(1.75) scaleY(1.5) rotateX(20deg);
-  animation: scanning 2s linear 0s infinite alternate;
-}
-
-@keyframes scanning {
-  from { transform: perspective(100px) translateY(-10px) scaleX(1.75)  scaleY(1.5) rotateX(20deg); }
-  to { transform: perspective(100px) translateY(-10px) scaleX(1.75) scaleY(1.5) rotateX(60deg); }
-}
-
-.smallButton[hidden] {
-  display: none;
-}
-
-.smallButton {
-  border: 0 none;
-  background-color: rgba(0, 0, 0, 0);
-  width: 32px;
-  height: 25px;
-  margin: 3px 2px 0 0;  
-  vertical-align: -4px;
-}
-
-.smallButton > span {
-  display: none;
-}
-
-.smallButton:hover,
-.smallButton:focus {
-  background-color: hsla(0,0%,0%,.2);
-  box-shadow: 0 1px 0 hsla(0,0%,100%,.05) inset,
-              0 0 1px hsla(0,0%,100%,.15) inset,
-              0 0 1px hsla(0,0%,0%,.05);
-  z-index: 10;
-}
-
-#info {
-  border: 1px solid #C0C0C0;
-  padding: 4px;
-  line-height: 28px;
-  text-align: center;
-}
-
-#open-url:before {
-  display: inline-block;
-  content: url(go.png);
-}
-
-#search-code::before {
-  display: inline-block;
-  content: url(search.png);
-}
-
-#toolbar {
-  margin-top: 6px;
-  text-align: center;
-}
-
-#scan {
-  width: 200px;
-  height: 200px;
-}
-
-#scan > span:before {
-  content: '';
-  background-image: url(qrcode.png);
-  background-size: 100% 100%;
-  display: block;
-  margin: 0 auto 20px auto ;
-  width: 128px; height: 128px;
-}
-
-#footer {
-  text-align: center;
+#video {
+	position: fixed;
+	right: 0;
+	bottom: 0;
+	min-width: 100%;
+	min-height: 100%;
+	width: auto;
+	height: auto;
 }
 
 #install {
-  margin-top: 12px;
-  color: white;
+	position: fixed;
+	padding: 10px;
+	width: 100px;
+	margin-left: -55px;
+	left: 50%;
+	bottom: 10px;
+	color: white;
+	background: rgba(0, 0, 0, 0.5);
+	text-align: center;
+	text-decoration: none;
 }
