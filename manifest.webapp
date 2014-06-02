@@ -1,14 +1,17 @@
 {
   "name": "Barcode",
   "description": "Simple barcode scanner based on zbar.sf.net",
-  "launch_path": "/zbarjs/index.html",
+  "launch_path": "/index.html",
   "icons": {
-    "128": "/zbarjs/icon-128.png"
+    "128": "/icon-128.png"
   },
-  "appcache_path": "/zbarjs/cache.manifest",
+  "appcache_path": "/cache.manifest",
   "developer": {
     "name": "Yury Delendik",
     "url": "https://github.com/yurydelendik"
   },
-  "default_locale": "en"
+  "default_locale": "en",
+  "permissions": {
+    "video-capture": {}
+  }
 }

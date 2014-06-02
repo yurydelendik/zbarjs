@@ -27,26 +27,12 @@ THE SOFTWARE.
     <link rel="stylesheet" type="text/css" href="css/style.css">
   </head>
   <body>
-    <div id="info" hidden>
-      <label id="code-type"></label>
-      <input id="code-content">
-
-      <button id="open-url" class="smallButton" onclick='openUrl()' hidden><span>Go to</span></button>
-      <button id="search-code" class="smallButton" onclick='searchCode()' hidden><span>Search</span></button>
-    </div>
-
-    <div id="toolbar">
-      <button id="scan" onclick='scan()'><span>Scan</span></button>
-    </div>
+    <video id="video"></video>
 
     <div id="footer">
       <a id="install" href="manifest.webapp" hidden>Install App</a>
     </div>
-
-    <div id="splash"></div>
-    <input type="file" id="take-picture" accept="image/*" style="z-index: -30; visibility: hidden; position: absolute; right: 0; top: 0;" capture>
-
+	
     <script type="text/javascript" src="zbar-main.js"></script>
-    <script type="text/javascript" src="zbar-processor.js"></script>
   </body>
 </html>
